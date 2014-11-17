@@ -144,13 +144,24 @@ impl<T> Node<T> where T: Clone {
 fn main() {
     use std::rand::distributions::{IndependentSample, Range};
     use std::rand::Rng;
+
+    let args = std::os::args();
+    let n = match args[] {
+        [_, ref a, ..] => match from_str::<uint>(a[]) {
+            Some(n) => n, _ => {
+                println!("enter a positive integer");
+                return
+            }
+        },
+        _ => 10
+    };
     
     let mut test: Quadtree<int> = Quadtree::new((0.0, 0.0), 1.0, 1.0);
 
     let mut rng = std::rand::task_rng();
     let dist = Range::new(-0.5, 0.5);
     
-    for _ in range(0u, 100) {
+    for _ in range(0u, n) {
         let p = (dist.ind_sample(&mut rng), dist.ind_sample(&mut rng));
         let v: int = rng.gen();
         test.push(p, v);
