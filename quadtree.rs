@@ -82,9 +82,8 @@ impl<T> Node<T> where T: Clone {
     }
 
     fn split(&mut self, w: Float, h: Float) {
-        let mut children: [Child<T>, ..4] = unsafe {std::mem::uninitialized()};
-        // let mut children: [Child<T>, ..4] = [None, None, None, None];
         let (x0, y0) = self.center;
+        let mut children: [Child<T>, ..4] = unsafe {std::mem::uninitialized()};
         
         match self.variant {
             Bucket(ref mut data) => {
@@ -104,7 +103,7 @@ impl<T> Node<T> where T: Clone {
                     child_data.get_mut(q).push(val.clone());
                 }
 
-                for (i, child) in children.iter_mut().rev().enumerate() {
+                for (i, child) in children.iter_mut().enumerate().rev() {
                     // println!("child_data.len = {}, i = {}", child_data.len(), i);
                     
                     let new = box Node {
@@ -117,21 +116,22 @@ impl<T> Node<T> where T: Clone {
                     }
                 }
             },
-            _ => return
+            _ => unreachable!()
         }
         swap(&mut self.variant, &mut Branch(children));
     }
     
     fn push(&mut self, depth: uint, pt: Point, value: T) -> Option<(*mut Node<T>, uint)> {
+        // println!("push(depth={}, pt={}, _) (Node (center={}, len={}))", depth, pt, self.center, self.len());
+            
         match self.variant {
             Branch(ref mut children) => {
                 let q = quadrant(self.center, pt);
-                children[q].push(depth - 1, pt, value);
-                None
+                children[q].push(depth - 1, pt, value)
             },
             Bucket(ref mut data) => {
                 data.push((pt, value));
-                if data.len() == MAX_NODE_CAPACITY && depth != 0 {
+                if data.len() > MAX_NODE_CAPACITY && depth != 0 {
                     Some((self as *mut Node<T>, depth))
                 } else {
                     None
