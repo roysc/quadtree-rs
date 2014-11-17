@@ -1,8 +1,8 @@
-#![feature(associated_types)]
+#![feature(slicing_syntax)]
 #![feature(phase)]
 #[phase(plugin, link)] extern crate log;
 
-use std::iter::AdditiveIterator;
+// use std::iter::AdditiveIterator;
 // use std::ops::IndexMut;
 // use std::num;
 use std::mem::swap;
@@ -28,9 +28,13 @@ impl<T> Quadtree<T> where T: Clone {
             dimensions: (w, h)
         }
     }
-
+    
     fn len(&self) -> uint {
-        self.root.len()
+        let mut sum: uint = 0u;
+        self.root.traverse(|node| match node.variant {
+            Bucket(ref data) => sum += data.len(), _ => return
+        });
+        sum
     }
     
     fn push(&mut self, pt: Point, value: T) {
@@ -45,7 +49,7 @@ impl<T> Quadtree<T> where T: Clone {
                     (*node).split(w / denom, h / denom);
                 }
             },
-            None => {}
+            None => return
         }
     }
 }
@@ -73,11 +77,16 @@ fn quadrant((x0, y0): Point, (x, y): Point) -> uint {
 }
 
 impl<T> Node<T> where T: Clone {
-    
-    fn len(&self) -> uint {
+
+    fn traverse(&self, f: |&Node<T>|) {
+        f(self);
         match self.variant {
-            Branch(ref children) => children.iter().map(|child| child.len()).sum(),
-            Bucket(ref data) => data.len()
+            Branch(ref children) => {
+                for child in children.iter() {
+                    child.traverse(|child| f(child));
+                }
+            },
+            _ => return
         }
     }
 
@@ -131,7 +140,7 @@ impl<T> Node<T> where T: Clone {
             },
             Bucket(ref mut data) => {
                 data.push((pt, value));
-                if data.len() > MAX_NODE_CAPACITY && depth != 0 {
+                if data.len() > MAX_BUCKET_CAPACITY && depth != 0 {
                     Some((self as *mut Node<T>, depth))
                 } else {
                     None
