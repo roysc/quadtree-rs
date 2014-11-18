@@ -1,9 +1,3 @@
-#![feature(slicing_syntax)]
-#![feature(phase)]
-
-// #[phase(plugin, link)] extern crate log;
-extern crate time;
-
 // use std::iter::AdditiveIterator;
 // use std::ops::IndexMut;
 // use std::num;
@@ -11,18 +5,18 @@ use std::mem::swap;
 // use test::Bencher;
 
 type Float = f64;
-type Point = (Float, Float);
+pub type Point = (Float, Float);
 
 const MAX_BUCKET_CAPACITY: uint = 1;
 const MAX_NODE_DEPTH: uint = 32;
 
-struct Quadtree<T> where T: Sized {
+pub struct Quadtree<T> where T: Sized {
     root: Node<T>,
     dimensions: (Float, Float),
 }
 
 impl<T> Quadtree<T> where T: Clone {
-    fn new(center: Point, w: Float, h: Float) -> Quadtree<T> {
+    pub fn new(center: Point, w: Float, h: Float) -> Quadtree<T> {
         Quadtree {
             root: Node {
                 center: center,
@@ -32,7 +26,7 @@ impl<T> Quadtree<T> where T: Clone {
         }
     }
     
-    fn len(&self) -> uint {
+    pub fn len(&self) -> uint {
         let mut sum: uint = 0u;
         self.root.traverse(|node| match node.variant {
             Bucket(ref data) => sum += data.len(), _ => return
@@ -40,7 +34,7 @@ impl<T> Quadtree<T> where T: Clone {
         sum
     }
     
-    fn push(&mut self, pt: Point, value: T) {
+    pub fn push(&mut self, pt: Point, value: T) {
         let res = self.root.push(MAX_NODE_DEPTH, pt, value);
         match res {
             Some((node, depth_sub)) => {
@@ -95,7 +89,7 @@ impl<T> Node<T> where T: Clone {
 
     fn split(&mut self, w: Float, h: Float) {
         let (x0, y0) = self.center;
-        let mut children: [Child<T>, ..4] = unsafe {std::mem::uninitialized()};
+        let mut children: [Child<T>, ..4] = unsafe {::std::mem::uninitialized()};
         
         match self.variant {
             Bucket(ref mut data) => {
@@ -122,7 +116,7 @@ impl<T> Node<T> where T: Clone {
                         center: make_center(i),
                         variant: Bucket(child_data.pop().unwrap())
                     };
-                    unsafe { std::ptr::write(child, new); }
+                    unsafe { ::std::ptr::write(child, new); }
                 }
             },
             _ => unreachable!()
@@ -148,37 +142,4 @@ impl<T> Node<T> where T: Clone {
             }
         }
     }
-}
-
-fn main() {
-    use std::rand::distributions::{IndependentSample, Range};
-    use std::rand::Rng;
-
-    let args = std::os::args();
-    let n = match args[] {
-        [_, ref a, ..] => match from_str::<uint>(a[]) {
-            Some(n) => n, _ => {
-                println!("enter a positive integer");
-                return
-            }
-        },
-        _ => 10
-    };
-    
-    let mut test: Quadtree<int> = Quadtree::new((0.0, 0.0), 1.0, 1.0);
-
-    let mut rng = std::rand::task_rng();
-    let dist = Range::new(-0.5, 0.5);
-
-    let points = Vec::<(Point, int)>::from_fn(n, |_| {
-        let p = (dist.ind_sample(&mut rng), dist.ind_sample(&mut rng));
-        (p, rng.gen())
-    });
-
-    let start_time = time::precise_time_ns();
-    for (p, v) in points.into_iter() { test.push(p, v); }
-    let end_time = time::precise_time_ns();
-    
-    println!("size = {}", test.len());
-    println!("time = {} ms", (end_time - start_time) as f64 / 1e6);
 }
