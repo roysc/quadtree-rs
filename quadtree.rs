@@ -1,13 +1,10 @@
 // use std::iter::AdditiveIterator;
 // use std::ops::IndexMut;
-// use std::num;
-use std::mem::swap;
-// use test::Bencher;
 
 type Float = f64;
 pub type Point = (Float, Float);
 
-const MAX_BUCKET_CAPACITY: uint = 1;
+const MAX_BUCKET_CAPACITY: uint = 10;
 const MAX_NODE_DEPTH: uint = 32;
 
 pub struct Quadtree<T> where T: Sized {
@@ -15,7 +12,7 @@ pub struct Quadtree<T> where T: Sized {
     dimensions: (Float, Float),
 }
 
-impl<T> Quadtree<T> where T: Clone {
+impl<T> Quadtree<T> {
     pub fn new(center: Point, w: Float, h: Float) -> Quadtree<T> {
         Quadtree {
             root: Node {
@@ -33,6 +30,12 @@ impl<T> Quadtree<T> where T: Clone {
         });
         sum
     }
+
+    pub fn node_count(&self) -> uint {
+        let mut sum: uint = 0u;
+        self.root.traverse(|_| sum += 1);
+        sum
+    }
     
     pub fn push(&mut self, pt: Point, value: T) {
         let res = self.root.push(MAX_NODE_DEPTH, pt, value);
@@ -40,7 +43,7 @@ impl<T> Quadtree<T> where T: Clone {
             Some((node, depth_sub)) => {
                 let depth = MAX_NODE_DEPTH - depth_sub;
                 let (w, h) = self.dimensions;
-                // let denom: Float = std::num::pow(2., depth);
+                // let denom: Float = ::std::num::pow(2., depth);
                 let denom = (2u << depth) as Float;
                 unsafe {
                     (*node).split(w / denom, h / denom);
@@ -73,7 +76,7 @@ fn quadrant((x0, y0): Point, (x, y): Point) -> uint {
     }
 }
 
-impl<T> Node<T> where T: Clone {
+impl<T> Node<T> {
 
     fn traverse(&self, f: |&Node<T>|) {
         f(self);
@@ -88,6 +91,8 @@ impl<T> Node<T> where T: Clone {
     }
 
     fn split(&mut self, w: Float, h: Float) {
+        use std::mem::swap;
+        
         let (x0, y0) = self.center;
         let mut children: [Child<T>, ..4] = unsafe {::std::mem::uninitialized()};
         
@@ -101,12 +106,13 @@ impl<T> Node<T> where T: Clone {
                     (x, y)
                 };
                 
-                let mut child_data: Vec<Vec<(Point, T)>> = Vec::from_elem(4, Vec::new());
+                let mut child_data: Vec<Vec<(Point, T)>> = Vec::from_fn(4, |_| Vec::new());
+                let mut data_swap = Vec::new();
+                swap(data, &mut data_swap);
 
-                for val in data.iter() {
-                    let &(pt, _) = val;
+                for (pt, val) in data_swap.into_iter() {
                     let q = quadrant(self.center, pt);
-                    child_data.get_mut(q).push(val.clone());
+                    child_data.get_mut(q).push((pt, val));
                 }
 
                 for (i, child) in children.iter_mut().enumerate().rev() {

@@ -44,5 +44,6 @@ fn main() {
     let end_time = time::precise_time_ns();
     
     println!("size = {}", test.len());
+    println!("nodes = {}", test.node_count());
     println!("time = {} ms", (end_time - start_time) as f64 / 1e6);
 }
