@@ -1,17 +1,20 @@
 #![feature(slicing_syntax)]
 #![feature(phase)]
-#[phase(plugin, link)] extern crate log;
+
+// #[phase(plugin, link)] extern crate log;
+extern crate time;
 
 // use std::iter::AdditiveIterator;
 // use std::ops::IndexMut;
 // use std::num;
 use std::mem::swap;
+// use test::Bencher;
 
 type Float = f64;
 type Point = (Float, Float);
 
-const MAX_NODE_CAPACITY: uint = 10;
-const MAX_NODE_DEPTH: uint = 8;
+const MAX_BUCKET_CAPACITY: uint = 1;
+const MAX_NODE_DEPTH: uint = 32;
 
 struct Quadtree<T> where T: Sized {
     root: Node<T>,
@@ -119,10 +122,7 @@ impl<T> Node<T> where T: Clone {
                         center: make_center(i),
                         variant: Bucket(child_data.pop().unwrap())
                     };
-                    unsafe {
-                        use std::ptr::write;
-                        write(child, new);
-                    }
+                    unsafe { std::ptr::write(child, new); }
                 }
             },
             _ => unreachable!()
@@ -169,12 +169,16 @@ fn main() {
 
     let mut rng = std::rand::task_rng();
     let dist = Range::new(-0.5, 0.5);
-    
-    for _ in range(0u, n) {
+
+    let points = Vec::<(Point, int)>::from_fn(n, |_| {
         let p = (dist.ind_sample(&mut rng), dist.ind_sample(&mut rng));
-        let v: int = rng.gen();
-        test.push(p, v);
-    }
+        (p, rng.gen())
+    });
+
+    let start_time = time::precise_time_ns();
+    for (p, v) in points.into_iter() { test.push(p, v); }
+    let end_time = time::precise_time_ns();
     
     println!("size = {}", test.len());
+    println!("time = {} ms", (end_time - start_time) as f64 / 1e6);
 }
