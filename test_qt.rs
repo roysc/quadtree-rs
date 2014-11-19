@@ -26,7 +26,7 @@ fn main() {
                 return
             }
         },
-        _ => 10
+        _ => 1000
     };
     
     let mut test: Quadtree<int> = Quadtree::new((0.0, 0.0), 1.0, 1.0);
