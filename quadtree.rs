@@ -41,7 +41,7 @@ impl<T> Quadtree<T> {
         let res = self.root.push(MAX_NODE_DEPTH, e);
         match res {
             Some((node, depth_sub)) => {
-                let depth = MAX_NODE_DEPTH - depth_sub;
+                let depth = MAX_NODE_DEPTH - depth_sub + 1;
                 let (w, h) = self.dimensions;
                 // let denom: Float = ::std::num::pow(2., depth);
                 let denom = (2u << depth) as Float;
@@ -90,7 +90,7 @@ impl<T> Node<T> {
         }
     }
 
-    fn split(&mut self, w: Float, h: Float) {
+    fn split(&mut self, dx: Float, dy: Float) {
         use std::mem::swap;
         
         let (x0, y0) = self.center;
@@ -100,7 +100,6 @@ impl<T> Node<T> {
             Bucket(ref mut data) => {
 
                 let make_center = |i: uint| {
-                    let (dx, dy) = (w / 2.0, h / 2.0);
                     let x = if i % 2 == 0 { x0 - dx } else { x0 + dx };
                     let y = if i < 2 { y0 - dy } else { y0 + dy };
                     (x, y)
