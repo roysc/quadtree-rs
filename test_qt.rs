@@ -40,7 +40,7 @@ fn main() {
     });
 
     let start_time = time::precise_time_ns();
-    for (p, v) in points.into_iter() { test.push(p, v); }
+    for e in points.into_iter() { test.push(e); }
     let end_time = time::precise_time_ns();
     
     println!("size = {}", test.len());

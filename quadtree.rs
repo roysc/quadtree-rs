@@ -37,8 +37,8 @@ impl<T> Quadtree<T> {
         sum
     }
     
-    pub fn push(&mut self, pt: Point, value: T) {
-        let res = self.root.push(MAX_NODE_DEPTH, pt, value);
+    pub fn push(&mut self, e: (Point, T)) {
+        let res = self.root.push(MAX_NODE_DEPTH, e);
         match res {
             Some((node, depth_sub)) => {
                 let depth = MAX_NODE_DEPTH - depth_sub;
@@ -130,13 +130,13 @@ impl<T> Node<T> {
         swap(&mut self.variant, &mut Branch(children));
     }
     
-    fn push(&mut self, depth: uint, pt: Point, value: T) -> Option<(*mut Node<T>, uint)> {
+    fn push(&mut self, depth: uint, (pt, value): (Point, T)) -> Option<(*mut Node<T>, uint)> {
         // println!("push(depth={}, pt={}, _) (Node (center={}, len={}))", depth, pt, self.center, self.len());
             
         match self.variant {
             Branch(ref mut children) => {
                 let q = quadrant(self.center, pt);
-                children[q].push(depth - 1, pt, value)
+                children[q].push(depth - 1, (pt, value))
             },
             Bucket(ref mut data) => {
                 data.push((pt, value));
