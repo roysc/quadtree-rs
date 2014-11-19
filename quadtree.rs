@@ -41,8 +41,8 @@ impl<T> Quadtree<T> {
         let res = self.root.push(MAX_NODE_DEPTH, e);
         match res {
             Some((node, depth_sub)) => {
-                let depth = MAX_NODE_DEPTH - depth_sub + 1;
                 let (w, h) = self.dimensions;
+                let depth = MAX_NODE_DEPTH - depth_sub + 1;
                 // let denom: Float = ::std::num::pow(2., depth);
                 let denom = (2u << depth) as Float;
                 unsafe {

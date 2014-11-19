@@ -1,3 +1,4 @@
+#![feature(macro_rules)]
 #![feature(slicing_syntax)]
 #![feature(phase)]
 
@@ -5,13 +6,15 @@
 extern crate time;
 
 mod quadtree;
-    
-// fn bench(f: ||) -> u64 {
-//     let start_time = time::precise_time_ns();
-//     f();
-//     let end_time = time::precise_time_ns();
-//     return end_time - start_time;
-// }
+
+macro_rules! benchmark(
+    ($what: expr) => { {        
+        let start_time = time::precise_time_ns();
+        let ret = $what;
+        let end_time = time::precise_time_ns();
+        (ret, end_time - start_time)
+    } }
+)
 
 fn main() {
     use quadtree::{Quadtree, Point};
@@ -29,7 +32,7 @@ fn main() {
         _ => 1000
     };
     
-    let mut test: Quadtree<int> = Quadtree::new((0.0, 0.0), 1.0, 1.0);
+    let mut tree: Quadtree<int> = Quadtree::new((0.0, 0.0), 1.0, 1.0);
 
     let mut rng = std::rand::task_rng();
     let dist = Range::new(-0.5, 0.5);
@@ -39,11 +42,9 @@ fn main() {
         (p, rng.gen())
     });
 
-    let start_time = time::precise_time_ns();
-    for e in points.into_iter() { test.push(e); }
-    let end_time = time::precise_time_ns();
+    let (_, t_insert) = benchmark!(for e in points.into_iter() { tree.push(e); });
     
-    println!("size = {}", test.len());
-    println!("nodes = {}", test.node_count());
-    println!("time = {} ms", (end_time - start_time) as f64 / 1e6);
+    println!("size = {}", tree.len());
+    println!("nodes = {}", tree.node_count());
+    println!("time = {} ms", t_insert as f64 / 1e6);
 }
