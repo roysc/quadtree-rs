@@ -4,7 +4,7 @@
 type Float = f64;
 pub type Point = (Float, Float);
 
-const MAX_BUCKET_CAPACITY: uint = 10;
+const MAX_BUCKET_CAPACITY: uint = 16;
 const MAX_NODE_DEPTH: uint = 32;
 
 pub struct Quadtree<T> where T: Sized {
@@ -130,7 +130,7 @@ impl<T> Node<T> {
     }
     
     fn push(&mut self, depth: uint, (pt, value): (Point, T)) -> Option<(*mut Node<T>, uint)> {
-        // println!("push(depth={}, pt={}, _) (Node (center={}, len={}))", depth, pt, self.center, self.len());
+        // println!("push(depth={}, pt={}, _) (Node (center={}))", depth, pt, self.center);
             
         match self.variant {
             Branch(ref mut children) => {
@@ -139,7 +139,7 @@ impl<T> Node<T> {
             },
             Bucket(ref mut data) => {
                 data.push((pt, value));
-                if data.len() > MAX_BUCKET_CAPACITY && depth != 0 {
+                if data.len() == MAX_BUCKET_CAPACITY && depth != 0 {
                     Some((self as *mut Node<T>, depth))
                 } else {
                     None
