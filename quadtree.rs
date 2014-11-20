@@ -126,7 +126,7 @@ impl<T> Node<T> {
             },
             _ => unreachable!()
         }
-        swap(&mut self.variant, &mut Branch(children));
+        self.variant = Branch(children);
     }
     
     fn push(&mut self, depth: uint, (pt, value): (Point, T)) -> Option<(*mut Node<T>, uint)> {
