@@ -1,0 +1,9 @@
+[package]
+
+name = "quadtree"
+version = "0.0.1"
+authors = ["Fuck You <just@work.com"]
+
+[dependencies]
+time = "0.1.17"
+
