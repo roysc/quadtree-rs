@@ -7,3 +7,5 @@ authors = ["Fuck You <just@work.com"]
 [dependencies]
 time = "0.1.17"
 
+[[bin]]
+name = "main"
